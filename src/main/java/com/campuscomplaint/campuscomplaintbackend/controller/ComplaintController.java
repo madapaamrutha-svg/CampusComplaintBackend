@@ -1,9 +1,9 @@
-
 package com.campuscomplaint.campuscomplaintbackend.controller;
 
 import com.campuscomplaint.campuscomplaintbackend.entity.Complaint;
 import com.campuscomplaint.campuscomplaintbackend.service.ComplaintService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,49 +19,65 @@ public class ComplaintController {
         this.complaintService = complaintService;
     }
 
-    // CREATE - Submit a new complaint
+    // CREATE - Submit a complaint as the authenticated student
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Complaint createComplaint(
-            @RequestBody Complaint complaint) {
-        return complaintService.saveComplaint(complaint);
+            @RequestBody Complaint complaint,
+            Authentication authentication) {
+
+        return complaintService.saveComplaintForUser(
+                complaint,
+                authentication.getName()
+        );
     }
 
-    // READ - Get all complaints
+    // READ - Get complaints belonging to the authenticated role
     @GetMapping
-    public List<Complaint> getAllComplaints() {
-        return complaintService.getAllComplaints();
+    public List<Complaint> getAllComplaints(
+            Authentication authentication) {
+
+        return complaintService.getComplaintsForUser(
+                authentication.getName()
+        );
     }
 
-    // READ - Get one complaint by ID
+    // READ - Get one complaint
     @GetMapping("/{id}")
     public Complaint getComplaintById(
-            @PathVariable Long id) {
-        return complaintService.getComplaintById(id);
-    }
-
-    // UPDATE - Update complaint details and status
-    @PutMapping("/{id}")
-    public Complaint updateComplaint(
             @PathVariable Long id,
-            @RequestBody Complaint updatedComplaint) {
+            Authentication authentication) {
 
-        Complaint existing =
-                complaintService.getComplaintById(id);
-
-        existing.setTitle(updatedComplaint.getTitle());
-        existing.setCategory(updatedComplaint.getCategory());
-        existing.setLocation(updatedComplaint.getLocation());
-        existing.setDescription(updatedComplaint.getDescription());
-        existing.setStatus(updatedComplaint.getStatus());
-
-        return complaintService.saveComplaint(existing);
+        return complaintService.getComplaintForUser(
+                id,
+                authentication.getName()
+        );
     }
 
-    // DELETE - Delete a complaint by ID
+    // UPDATE - Maintenance can update complaint status only
+    @PutMapping("/{id}/status")
+    public Complaint updateComplaintStatus(
+            @PathVariable Long id,
+            @RequestBody Complaint updatedComplaint,
+            Authentication authentication) {
+
+        return complaintService.updateStatusForMaintenance(
+                id,
+                updatedComplaint.getStatus(),
+                authentication.getName()
+        );
+    }
+
+    // DELETE - Students can delete only their own complaints
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteComplaint(@PathVariable Long id) {
-        complaintService.deleteComplaint(id);
+    public void deleteComplaint(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        complaintService.deleteComplaintForUser(
+                id,
+                authentication.getName()
+        );
     }
 }
