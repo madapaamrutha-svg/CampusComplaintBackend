@@ -36,7 +36,8 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
             "http://localhost:5173",
             "http://localhost:3000",
-            "https://campus-complaint-frontend-one.vercel.app"
+            "https://campus-complaint-frontend-one.vercel.app",
+            "https://campus-complaint-frontend-*.vercel.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
